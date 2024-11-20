@@ -29,6 +29,22 @@ def snake_game():
     # 점수 초기화
     score = 0
 
+    def confirm_exit():
+        """종료 확인 메시지 처리"""
+        window.addstr(screen_height//2, screen_width//2 - 10, "정말 종료하시겠습니까? (y/n)")
+        window.refresh()
+        while True:
+            try:
+                confirm_key = window.getkey()
+                if confirm_key.lower() == 'y':
+                    return True
+                elif confirm_key.lower() == 'n':
+                    window.addstr(screen_height//2, screen_width//2 - 10, " " * 30)  # 메시지 지우기
+                    window.refresh()
+                    return False
+            except curses.error:
+                pass
+
     while True:
         # 점수 표시
         window.addstr(0, 2, f"Score: {score} ")
@@ -36,9 +52,12 @@ def snake_game():
         # 사용자 입력 처리
         try:
             next_key = window.getkey()
+            if next_key == 'q':  # 'q' 입력 시 종료 확인
+                if confirm_exit():
+                    break
             if next_key in key_map:
                 direction = key_map[next_key]
-            elif next_key == 'KEY_LEFT':  # 터미널에서 방향키 처리
+            elif next_key == 'KEY_LEFT':
                 direction = 'LEFT'
             elif next_key == 'KEY_RIGHT':
                 direction = 'RIGHT'
@@ -73,6 +92,10 @@ def snake_game():
             # 먹지 않았다면 꼬리를 제거
             tail = snake.pop()
             window.addch(tail[0], tail[1], ' ')
+
+        # 벽 경고 표시
+        if head[0] == 1 or head[0] == screen_height - 2 or head[1] == 1 or head[1] == screen_width - 2:
+            window.addstr(1, 2, "⚠️ 벽에 가까워지고 있습니다! ⚠️ ")
 
         # 스네이크 충돌 검사
         if (
