@@ -1,7 +1,6 @@
 import curses
 from random import randint
 
-# 스네이크 게임 함수
 def snake_game():
     # curses 초기화
     screen = curses.initscr()
@@ -15,27 +14,50 @@ def snake_game():
 
     # 초기 스네이크 설정
     snake = [[10, 15], [10, 14], [10, 13]]
-    direction = curses.KEY_RIGHT
+    direction = 'RIGHT'
+    key_map = {
+        'w': 'UP',
+        's': 'DOWN',
+        'a': 'LEFT',
+        'd': 'RIGHT'
+    }
 
     # 먹이 생성
-    food = [screen_height//2, screen_width//4]
-    window.addch(food[0], food[1], curses.ACS_PI)
+    food = [randint(1, screen_height-2), randint(1, screen_width-2)]
+    window.addch(food[0], food[1], '*')
+
+    # 점수 초기화
+    score = 0
 
     while True:
+        # 점수 표시
+        window.addstr(0, 2, f"Score: {score} ")
+
         # 사용자 입력 처리
-        next_key = window.getch()
-        if next_key != -1:
-            direction = next_key
+        try:
+            next_key = window.getkey()
+            if next_key in key_map:
+                direction = key_map[next_key]
+            elif next_key == 'KEY_LEFT':  # 터미널에서 방향키 처리
+                direction = 'LEFT'
+            elif next_key == 'KEY_RIGHT':
+                direction = 'RIGHT'
+            elif next_key == 'KEY_UP':
+                direction = 'UP'
+            elif next_key == 'KEY_DOWN':
+                direction = 'DOWN'
+        except curses.error:
+            pass
 
         # 스네이크 머리 이동
         head = snake[0]
-        if direction == curses.KEY_RIGHT:
+        if direction == 'RIGHT':
             new_head = [head[0], head[1] + 1]
-        elif direction == curses.KEY_LEFT:
+        elif direction == 'LEFT':
             new_head = [head[0], head[1] - 1]
-        elif direction == curses.KEY_UP:
+        elif direction == 'UP':
             new_head = [head[0] - 1, head[1]]
-        elif direction == curses.KEY_DOWN:
+        elif direction == 'DOWN':
             new_head = [head[0] + 1, head[1]]
         else:
             new_head = head  # 유효하지 않은 방향은 무시
@@ -44,8 +66,9 @@ def snake_game():
 
         # 스네이크가 먹이를 먹으면
         if snake[0] == food:
-            food = [randint(1, screen_height-1), randint(1, screen_width-1)]
-            window.addch(food[0], food[1], curses.ACS_PI)
+            score += 1
+            food = [randint(1, screen_height-2), randint(1, screen_width-2)]
+            window.addch(food[0], food[1], '*')
         else:
             # 먹지 않았다면 꼬리를 제거
             tail = snake.pop()
@@ -60,10 +83,10 @@ def snake_game():
             break
 
         # 화면에 스네이크 표시
-        window.addch(snake[0][0], snake[0][1], curses.ACS_CKBOARD)
+        window.addch(snake[0][0], snake[0][1], 'O')
 
     curses.endwin()
-    print("게임 오버!")
+    print(f"게임 오버! 최종 점수: {score}")
 
 # 실행
 if __name__ == "__main__":
