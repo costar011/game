@@ -12,6 +12,13 @@ def snake_game():
     screen_height, screen_width = screen.getmaxyx()
     window = curses.newwin(screen_height, screen_width, 0, 0)
 
+    # 벽 생성
+    num_walls = 10  # 생성할 벽의 개수
+    walls = set()
+    while len(walls) < num_walls:
+        wall = (randint(1, screen_height-2), randint(1, screen_width-2))
+        walls.add(wall)
+
     # 초기 스네이크 설정
     snake = [[10, 15], [10, 14], [10, 13]]
     direction = 'RIGHT'
@@ -23,11 +30,17 @@ def snake_game():
     }
 
     # 먹이 생성
-    food = [randint(1, screen_height-2), randint(1, screen_width-2)]
+    food = (randint(1, screen_height-2), randint(1, screen_width-2))
+    while food in walls or food in snake:  # 벽이나 스네이크와 겹치지 않게
+        food = (randint(1, screen_height-2), randint(1, screen_width-2))
     window.addch(food[0], food[1], '*')
 
     # 점수 초기화
     score = 0
+
+    # 벽 표시
+    for wall in walls:
+        window.addch(wall[0], wall[1], '#')
 
     def confirm_exit():
         """종료 확인 메시지 처리"""
@@ -84,24 +97,23 @@ def snake_game():
         snake.insert(0, new_head)
 
         # 스네이크가 먹이를 먹으면
-        if snake[0] == food:
+        if snake[0] == list(food):
             score += 1
-            food = [randint(1, screen_height-2), randint(1, screen_width-2)]
+            food = (randint(1, screen_height-2), randint(1, screen_width-2))
+            while food in walls or food in snake:  # 벽이나 스네이크와 겹치지 않게
+                food = (randint(1, screen_height-2), randint(1, screen_width-2))
             window.addch(food[0], food[1], '*')
         else:
             # 먹지 않았다면 꼬리를 제거
             tail = snake.pop()
             window.addch(tail[0], tail[1], ' ')
 
-        # 벽 경고 표시
-        if head[0] == 1 or head[0] == screen_height - 2 or head[1] == 1 or head[1] == screen_width - 2:
-            window.addstr(1, 2, "⚠️ 벽에 가까워지고 있습니다! ⚠️ ")
-
         # 스네이크 충돌 검사
         if (
-            snake[0][0] in [0, screen_height] or  # 벽 충돌
-            snake[0][1] in [0, screen_width] or  # 벽 충돌
-            snake[0] in snake[1:]                # 자기 자신 충돌
+            tuple(snake[0]) in walls or  # 벽 충돌
+            snake[0][0] in [0, screen_height] or  # 화면 경계 충돌
+            snake[0][1] in [0, screen_width] or  # 화면 경계 충돌
+            snake[0] in snake[1:]  # 자기 자신 충돌
         ):
             break
 
